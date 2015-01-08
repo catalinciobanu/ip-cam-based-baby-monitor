@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Baby Monitor</string>
+    <string name="status">Starting up…</string>
+    <string name="turn_off_led">Turn off LED</string>
+    <string name="action_exit">Exit</string>
+    <string name="action_clear_auth">Clear authentication</string>
+    <string name="monitoring_on">Monitoring On</string>
+    <string name="cam_monitoring_label">Camera Monitoring</string>
+    <string name="camera_connected">Connected to camera</string>
+    <string name="camera_disconnected">Disconnected from camera</string>
+    <string name="audio_detected">Audio Detected</string>
+    <string name="motion_detected">Motion Detected</string>
+    <string name="camera_led_on">Turned on LED</string>
+    <string name="camera_led_off">Turned off LED</string>
+    <string name="camera_led_switch_error">Error switching LED</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="remember">Remember</string>
+
+</resources>
