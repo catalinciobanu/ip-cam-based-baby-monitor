@@ -7,12 +7,15 @@
     <string name="action_exit">Exit</string>
     <string name="action_clear_auth">Clear authentication</string>
     <string name="monitoring_on">Monitoring On</string>
+    <string name="monitoring_off">Monitoring Off</string>
     <string name="cam_monitoring_label">Camera Monitoring</string>
     <string name="camera_connected">Connected to camera</string>
     <string name="camera_disconnected">Disconnected from camera</string>
     <string name="audio_detected">Audio Detected</string>
     <string name="motion_detected">Motion Detected</string>
+    <string name="turning_led_on">Turning LED on…</string>
     <string name="camera_led_on">Turned on LED</string>
+    <string name="turning_led_off">Turning LED off…</string>
     <string name="camera_led_off">Turned off LED</string>
     <string name="camera_led_switch_error">Error switching LED</string>
     <string name="username">Username</string>

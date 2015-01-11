@@ -93,31 +93,7 @@ public class LocalService extends Service {
     // This is the retrieved (from upnp service) IP address of the cam
     private String mCamHost;
     
-    void onConnectedToCamera() {
-    	mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-            	if (mUIUpdater != null)
-            		mUIUpdater.updateStatus(getString(R.string.camera_connected));
-            	else // The ui updater is not ready yet so postpone this for later (when it will be ready)
-            		mMainHandler.post(this);
-            }
-        });
-    }
-    
-    void onDisconnectedFromCamera() {
-    	mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-            	if (mUIUpdater != null)
-            		mUIUpdater.updateStatus(getString(R.string.camera_disconnected));
-            	else // The ui updater is not ready yet so postpone this for later (when it will be ready)
-            		mMainHandler.post(this);
-            }
-        });
-    }
-    
-    void onSwitchingLed(final int resId) {
+    void updateStatus(final int resId) {
     	mMainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -179,6 +155,9 @@ public class LocalService extends Service {
     	    		try {
     	    			// The cam seems to have a bug in that it doesn't know the real status of the led (on/off)
     	    			// In order to set if to off the workaround is to first set it to on and then to off
+    	    			
+    	    			updateStatus(R.string.turning_led_on);
+    	    			
     	    			Uri.Builder uriBuilder = new Uri.Builder();
     	    			uriBuilder.scheme(CAM_TURN_OFF_LED_URL_SCHEME)
     	    		    	.authority(mCamHost)
@@ -192,9 +171,12 @@ public class LocalService extends Service {
     	    		    if (statusCode != HttpStatus.SC_OK)
     	    		        throw new Exception();
     	    		    
-    	    		    onSwitchingLed(R.string.camera_led_on);
+    	    		    updateStatus(R.string.camera_led_on);
     	    		    
     	    		    // Now set it to off
+    	    		    
+    	    		    updateStatus(R.string.turning_led_off);
+    	    		    
     	    		    uriBuilder = new Uri.Builder();
     	    			uriBuilder.scheme(CAM_TURN_OFF_LED_URL_SCHEME)
     	    		    	.authority(mCamHost)
@@ -208,9 +190,9 @@ public class LocalService extends Service {
     	    		    if (statusCode != HttpStatus.SC_OK)
     	    		        throw new Exception();
     	    		    
-    	    		    onSwitchingLed(R.string.camera_led_off);
+    	    		    updateStatus(R.string.camera_led_off);
     	    		} catch (Exception e) {
-    	    			onSwitchingLed(R.string.camera_led_switch_error);
+    	    			updateStatus(R.string.camera_led_switch_error);
     	    		}
     	        }
     	    }).start();
@@ -363,7 +345,7 @@ public class LocalService extends Service {
     		    
     		    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
     		    
-    		    onConnectedToCamera();
+    		    updateStatus(R.string.camera_connected);
     		    
     		    while (!isCancelled()) {
     		    	while (reader.ready() && !isCancelled()) {
@@ -391,9 +373,11 @@ public class LocalService extends Service {
     		    	
     		    	Thread.sleep(100);
     		    }
-    		    onDisconnectedFromCamera();
+    		    updateStatus(R.string.camera_disconnected);
     		} catch (Exception e) {
-    			onDisconnectedFromCamera();
+    			updateStatus(R.string.camera_disconnected);
+    			showStatusNotification(R.string.monitoring_off, true);
+    			onEventsTriggered();
     		}
     		return null;
     	}
@@ -413,7 +397,7 @@ public class LocalService extends Service {
         mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
         
         // Display a notification about us starting.  We put an icon in the status bar
-        showStatusNotification();
+        showStatusNotification(R.string.monitoring_on, false);
     }
 
     @Override
@@ -438,11 +422,10 @@ public class LocalService extends Service {
     private final IBinder mBinder = new LocalBinder();
 
     /**
-     * Show a notification while this monitoring is on
+     * Show a status notification
      */
-    private void showStatusNotification() {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.monitoring_on);
+    private void showStatusNotification(final int resId, boolean noticeable) {
+        CharSequence text = getText(resId);
         
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -454,7 +437,10 @@ public class LocalService extends Service {
         	.setContentTitle(getText(R.string.cam_monitoring_label))
         	.setContentText(text)
         	.setSmallIcon(R.drawable.ic_launcher)
-        	.getNotification(); 
+        	.getNotification();
+        
+        if (noticeable)
+        	notification.defaults = Notification.DEFAULT_ALL;
 
         // Send the notification
         mNotificationManager.notify(NOTIFICATION_MONITORING_ON, notification);
