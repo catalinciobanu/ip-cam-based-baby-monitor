@@ -63,9 +63,14 @@ public class LocalService extends Service {
     private final String CAM_WEB_EVENT_URL_PAGE = "web_event.cgi";
     
     // MJPEG streaming specific section
-    private final String CAM_STREAM_URL_SCHEME = "http";
-    private final String CAM_STREAM_URL_FOLDER = "video";
-    private final String CAM_STREAM_URL_PAGE = "mjpg.cgi";
+    private final String CAM_VIDEO_STREAM_URL_SCHEME = "http";
+    private final String CAM_VIDEO_STREAM_URL_FOLDER = "video";
+    private final String CAM_VIDEO_STREAM_URL_PAGE = "mjpg.cgi";
+    
+    // ACAS streaming specific section
+    private final String CAM_AUDIO_STREAM_URL_SCHEME = "http";
+    private final String CAM_AUDIO_STREAM_URL_FOLDER = "audio";
+    private final String CAM_AUDIO_STREAM_URL_PAGE = "ACAS.cgi";
     
     // Turn off LED specific section
     private final String CAM_TURN_OFF_LED_URL_SCHEME = "http";
@@ -81,7 +86,8 @@ public class LocalService extends Service {
     public interface UIUpdater {
     	void updateStatus(String status);
     	void enableTurnOffLed();
-    	void startStreaming(InputStream streaming);
+    	void startAudioStreaming(InputStream streaming);
+    	void startVideoStreaming(InputStream streaming);
     	void onEventTrigger();
     	void onEventIdle();
     }
@@ -201,6 +207,7 @@ public class LocalService extends Service {
     
     public void initiateStreaming() {
     	if (mCamHost != null) {
+    		// Audio streaming
     		new Thread(new Runnable() {
     	        public void run() {
     	        	DefaultHttpClient client = new DefaultHttpClient();
@@ -209,10 +216,10 @@ public class LocalService extends Service {
 
     	    		try {
     	    			Uri.Builder uriBuilder = new Uri.Builder();
-    	    			uriBuilder.scheme(CAM_STREAM_URL_SCHEME)
+    	    			uriBuilder.scheme(CAM_AUDIO_STREAM_URL_SCHEME)
     	    		    	.authority(mCamHost)
-    	    		    	.appendPath(CAM_STREAM_URL_FOLDER)
-    	    		    	.appendPath(CAM_STREAM_URL_PAGE);
+    	    		    	.appendPath(CAM_AUDIO_STREAM_URL_FOLDER)
+    	    		    	.appendPath(CAM_AUDIO_STREAM_URL_PAGE);
     	    		    HttpGet getRequest = new HttpGet(uriBuilder.build().toString());
 
     	    		    HttpResponse response = client.execute(getRequest);
@@ -224,9 +231,45 @@ public class LocalService extends Service {
     	    		    mMainHandler.post(new Runnable() {
     	                    @Override
     	                    public void run() {
-    	                    	// Start streaming
+    	                    	// Start audio streaming
     	                    	if (mUIUpdater != null)
-    	                    		mUIUpdater.startStreaming(streaming);
+    	                    		mUIUpdater.startAudioStreaming(streaming);
+    	                    }
+    	                });
+    	    		    
+    	    		} catch (Exception e) {
+    	    			
+    	    		}
+    	        }
+    	    }).start();
+    		
+    		// Video streaming
+    		new Thread(new Runnable() {
+    	        public void run() {
+    	        	DefaultHttpClient client = new DefaultHttpClient();
+    	    		Credentials credentials = new UsernamePasswordCredentials(MainActivity.mUsername, MainActivity.mPassword);
+    	    		client.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), credentials);
+
+    	    		try {
+    	    			Uri.Builder uriBuilder = new Uri.Builder();
+    	    			uriBuilder.scheme(CAM_VIDEO_STREAM_URL_SCHEME)
+    	    		    	.authority(mCamHost)
+    	    		    	.appendPath(CAM_VIDEO_STREAM_URL_FOLDER)
+    	    		    	.appendPath(CAM_VIDEO_STREAM_URL_PAGE);
+    	    		    HttpGet getRequest = new HttpGet(uriBuilder.build().toString());
+
+    	    		    HttpResponse response = client.execute(getRequest);
+    	    		    int statusCode = response.getStatusLine().getStatusCode();
+    	    		    if (statusCode != HttpStatus.SC_OK)
+    	    		        throw new Exception();
+    	    		    final InputStream streaming = response.getEntity().getContent();
+    	    		    
+    	    		    mMainHandler.post(new Runnable() {
+    	                    @Override
+    	                    public void run() {
+    	                    	// Start video streaming
+    	                    	if (mUIUpdater != null)
+    	                    		mUIUpdater.startVideoStreaming(streaming);
     	                    }
     	                });
     	    		    

@@ -2,6 +2,8 @@ package com.babymonitor;
 
 import java.io.InputStream;
 
+import com.babymonitor.audio.ACASInputStream;
+import com.babymonitor.audio.AudioPlayer;
 import com.babymonitor.video.MjpegInputStream;
 import com.babymonitor.video.MjpegView;
 import ip.cam.babymonitor.R;
@@ -59,6 +61,8 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
 	KeyguardLock keyguardLock;
 	
 	private LocalService mBoundService;
+	
+	private AudioPlayer mAudioPlayer;
 
 	private ServiceConnection mConnection = new ServiceConnection() {
 	    public void onServiceConnected(ComponentName className, IBinder service) {
@@ -130,6 +134,8 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
     			ensureVisible(false);
             }
         };
+        
+        mAudioPlayer = new AudioPlayer();
 		
 		MjpegView videoView = (MjpegView)findViewById(R.id.videoView);
         videoView.setDisplayMode(MjpegView.SIZE_BEST_FIT);
@@ -166,6 +172,8 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
 	@Override
     public void onPause() {
     	super.onPause();
+    	
+    	mAudioPlayer.stopPlayback();
     	
 		MjpegView videoView = (MjpegView)findViewById(R.id.videoView);
         videoView.stopPlayback();
@@ -225,10 +233,16 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
 	}
 	
 	@Override
-	public void startStreaming(InputStream streaming) {
+	public void startAudioStreaming(InputStream streaming) {
+		// Set the stream
+		mAudioPlayer.setSource(new ACASInputStream(streaming));
+	}
+	
+	@Override
+	public void startVideoStreaming(InputStream streaming) {
 		MjpegView videoView = (MjpegView)findViewById(R.id.videoView);
 		
-		//Set the URI
+		// Set the stream
         videoView.setSource(new MjpegInputStream(streaming));
 	}
 	
