@@ -10,8 +10,6 @@ import ip.cam.babymonitor.R;
 
 import android.app.Activity;
 import android.app.DialogFragment;
-import android.app.KeyguardManager;
-import android.app.KeyguardManager.KeyguardLock;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -56,9 +54,6 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
 	WakeLock mWakeLock;
 	WifiManager mWifiManager;
 	WifiLock mWifiLock;
-	
-	KeyguardManager keyguardManager;
-	KeyguardLock keyguardLock;
 	
 	private LocalService mBoundService;
 	
@@ -108,15 +103,13 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
 			if (mWakeLock.isHeld())
         		mWakeLock.release();
         	
-        	keyguardLock.reenableKeyguard();
-    		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		}
 		else {
 			if (!mWakeLock.isHeld())
 				mWakeLock.acquire();
 			
-			keyguardLock.disableKeyguard();
-	        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+	        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		}
 	}
 	
@@ -155,9 +148,6 @@ public class MainActivity extends Activity implements LocalService.UIUpdater, Au
     	mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     	mWifiLock = mWifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, TAG);
     	mWifiLock.setReferenceCounted(false);
-    	
-    	keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE); 
-        keyguardLock =  keyguardManager.newKeyguardLock(TAG);
         
         loadAuthenticationData();
         
